@@ -18,6 +18,7 @@ class SourceCodeModification():
     WORKSPACE = Path(os.environ.get("WORKSPACE", Path.cwd()))
     SOURCE_ROOT = WORKSPACE / "sample_project" / "modules"
 
+#  ###############   Source files like .c and header files like .h, both can be utilized..
     ALL_MODULES = {
         "MODULE_A": {
             "file": SOURCE_ROOT / "module_a.c",
@@ -34,9 +35,15 @@ class SourceCodeModification():
             "test_variable": "Uint16 test_counter_start = 0, test_counter_end;",
             "increment": "++test_counter_start;",
             "assignment": "test_counter_end = test_counter_start;"
+        },
+        "MODULE_C": {
+            "file": SOURCE_ROOT/ "module_c.c",
+            "Inserline1" : "if 0",
+            "Inserline2" : "#endif"
         }
     }
 
+######## This Method is used to replace any string, mostly for Rte interfaces was been used. 
 
     def replace_multiple_strings(self, file_path, replacements):
         """Replace multiple strings in a single file."""
@@ -59,6 +66,8 @@ class SourceCodeModification():
         if content != original_content:
             with open(file_path, "w") as f:
                 f.write(content)
+
+####### This Method is used to insert multiple strings/ tuple, mostly was used for test structure definition.
 
     def insert_strings_below_targets(self, file_path, insert_map):
         """
@@ -89,6 +98,8 @@ class SourceCodeModification():
 
         with open(file_path, "w") as f:
             f.writelines(new_lines)
+
+###########  This Method was used to insert test variables so to measure the cyclicity of a given interface.
 
     def insert_Test_variables(self, file_path, variables, functions, incrementals, assignments):
 
@@ -173,8 +184,36 @@ class SourceCodeModification():
             print(f"Inserted {incrementals} in function {functions}")
             print(f"Inserted {assignments} in file {file_path}")
 
+# This Method was created specifically for one .c file where had to commentout some lines of code, but can be used to comment any thing.
 
-    def process_specific_c_files(self, file_actions): 
+    def Comment_Lines(self,insertline1, insertline2, file_path ):
+    
+        if not os.path.isfile(file_path):
+            print(f"[ERROR] File not Found: {file_path}")
+            return
+        with open(file_path, "r") as f:
+            content = f.readlines()
+        if any(insertline1 in line for line in content) or any(insertline2 in line for line in content):
+            print(f"Inserts already exists!! {insertline1} / {insertline2}")
+            return
+        new_lines = []
+        # using RTe interface as reference 
+        first_RTE_index = False
+
+        for line in content:
+            if ("Search for that string in code and paste here" in line):
+                new_lines.append(insertline1 + "\n")
+            if "Rte_Port" in line and not first_RTE_index:
+                new_lines.append(insertline2 = "\n")
+                first_RTE_index = True
+            new_lines.append(line)
+        with open(file_path, "w") as f :
+            f.writelines(new_lines)
+            print(f"[ok] inserted text below: {insertline1} and {insertline2}")
+
+###### This method will process all the actions defines in the hashmaps above per file.
+
+    def process_specific_files(self, file_actions): 
         
         for file_path, actions in file_actions.items():
             file_path = Path(file_path)
@@ -185,7 +224,10 @@ class SourceCodeModification():
                 self.insert_strings_below_targets(file_path, actions["insert_below"])
             if "TestVariable" in actions and "FunctionName" in actions and "Increment" in actions and "Assignment" in actions:
                 self.insert_Test_variables(file_path , actions["TestVariable"],actions["FunctionName"],actions["Increment"],actions["Assignment"])
+            if actions.get("Insertline1") and actions.get("Insertline2"):
+                self.Comment_Lines(file_path, actions["Insertline1"], actions["Insertline2"])
 
+###### This Method will first detect the modules by its stage name in jenkins pipeline, later process and print respective stage modules.
 
     def process_modules(self):
         self.detect_modules()
@@ -205,9 +247,11 @@ class SourceCodeModification():
                 "increment": File.get("increment",[]),
                 "assignment": File.get("assignment",[]),
                 "insert_below": File.get("insert_below", {}),
-                "replace": File.get("replace", {})
+                "replace": File.get("replace", {}),
+                "Insertline1" : File.get("Insertline1"),
+                "Insertline2" : File.get("Inserline2")
             }
-            self.process_specific_c_files({File["file"]: actions})
+            self.process_specific_files({File["file"]: actions})
 
 
     def __init__(self):
@@ -220,6 +264,8 @@ class SourceCodeModification():
                 self.active_modules = modules
                 break
         
+###### Note : Argument parser used to parameterize in such a way that all other dependent files/ functionality can be parsed in one go.
+
 def main ():
         parser = argparse.ArgumentParser()
 
