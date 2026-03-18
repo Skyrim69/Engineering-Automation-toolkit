@@ -1,10 +1,13 @@
-# CI-Integrated Source Instrumentation Toolkit
+CI-Integrated Source Instrumentation & Report Consolidation Toolkit
 
-## Overview
+Overview
 
-This repository contains a collection of automation utilities developed to support CI/CD workflows, source code instrumentation, and build validation processes.
+This repository contains a collection of automation utilities designed to enhance CI/CD workflows, enable dynamic source code instrumentation, and streamline test report consolidation.
 
-The primary module provides stage-driven dynamic modification of C source files during Jenkins pipeline execution, enabling automated test instrumentation and controlled runtime validation.
+It combines two key capabilities:
+
+1. Stage-driven C source instrumentation integrated with Jenkins pipelines
+2. Automated HTML test report comparison and merging utility
 
 ---
 
@@ -14,41 +17,46 @@ The primary module provides stage-driven dynamic modification of C source files 
 
 This module dynamically modifies selected C source files during specific Jenkins pipeline stages, builds the modified binaries, executes validation, and safely restores original source files after execution.
 
+Key Features
+1.Stage-based module detection using environment variables
+2.Automated backup and restoration of original source files
+3.Dynamic modification of .c files:
+  >.Test variable insertion
+  >.Instrumentation counters injection
+  >.Controlled replacement of RTE write calls
+  >.Structured data transfer logic
+4.CI-triggered build and execution workflow
+5.Idempotent and reversible modifications to maintain source integrity
 ---
 
-### Key Capabilities
+## HTML Report Merger & Comparator
 
-- Stage-based module detection using environment variables
-- Automated backup of original source files
-- Targeted modification of `.c` source files:
-  - Insertion of test variables
-  - Injection of instrumentation counters
-  - Controlled replacement of RTE write calls
-  - Structured data transfer logic insertion
-- Automated binary copy management
-- Safe restoration of original source files after stage completion
+### Purpose 
+This module processes multiple HTML test reports, validates their structural consistency, and generates a unified merged report.
 
----
+Key Features
+1.Parses multiple HTML reports using structured DOM processing
+2.Validates consistency across:
+  Test Unit
+  Test Group
+  Test Fixture
+3.Intelligent merging logic:
+  Adds missing test groups, fixtures, or test cases
+  Avoids duplication of existing entries
+  Preserves original report hierarchy
+4.Generates a consolidated output report (MergedReport.html)
 
-### Workflow
-
-1. Detect active pipeline stage (via `STAGE_NAME`)
-2. Identify associated modules using stage-to-module mapping
-3. Backup original source files
-4. Apply structured source modifications
-5. Trigger build via CI pipeline
-6. Execute modules
-7. Restore original source files
+The implementation uses Python-based parsing and comparison logic to ensure only compatible reports are merged
 
 ---
 
 ### Design Characteristics
 
-- Centralized module configuration using dictionary-driven architecture
-- Idempotent modification logic (avoids duplicate insertions)
-- Reversible operations to ensure source integrity
-- Environment-driven configuration
-- CI/CD friendly CLI interface
+1.Modular and extensible architecture
+2.Environment-driven configuration
+3.Safe, reversible operations
+4.CI/CD friendly CLI utilities
+5.Structured and reusable parsing logic for report processing
 
 ---
 
